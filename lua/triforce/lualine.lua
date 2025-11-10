@@ -1,8 +1,10 @@
 ---Lualine integration components for Triforce
 ---Provides modular statusline components for level, achievements, streak, and session time
+---@class Triforce.Lualine
 local M = {}
 
 ---Default configuration for lualine components
+---@class Triforce.Lualine.Config
 M.config = {
   -- Level component config
   level = {
@@ -36,7 +38,7 @@ M.config = {
 }
 
 ---Setup lualine integration with custom config
----@param opts table|nil User configuration
+---@param opts Triforce.Lualine.Config|nil User configuration
 function M.setup(opts)
   if opts then
     M.config = vim.tbl_deep_extend('force', M.config, opts)
@@ -44,11 +46,11 @@ function M.setup(opts)
 end
 
 ---Get current stats safely
----@return table|nil stats
+---@return Stats|nil stats
 local function get_stats()
   local ok, triforce = pcall(require, 'triforce')
   if not ok then
-    return nil
+    return
   end
 
   return triforce.get_stats()
@@ -117,7 +119,7 @@ function M.level(opts)
   local xp_progress = current_xp - xp_for_current
 
   -- Build component parts
-  local parts = {}
+  local parts = {} ---@type string[]
 
   -- Prefix and level number
   if config.show_level then
@@ -146,7 +148,7 @@ function M.level(opts)
 end
 
 ---Achievements component - Shows unlocked achievement count
----@param opts table|nil Component-specific options
+---@param opts { icon: string, show_count: boolean }|nil Component-specific options
 ---@return string component
 function M.achievements(opts)
   local config = vim.tbl_deep_extend('force', M.config.achievements, opts or {})
@@ -157,8 +159,7 @@ function M.achievements(opts)
   end
 
   -- Count achievements
-  local stats_module = require('triforce.stats')
-  local all_achievements = stats_module.get_all_achievements(stats)
+  local all_achievements = require('triforce.stats').get_all_achievements(stats)
   local total = #all_achievements
   local unlocked = 0
 
@@ -167,7 +168,7 @@ function M.achievements(opts)
   end
 
   -- Build component
-  local parts = {}
+  local parts = {} ---@type string[]
 
   if config.icon ~= '' then
     table.insert(parts, config.icon)
@@ -181,7 +182,7 @@ function M.achievements(opts)
 end
 
 ---Streak component - Shows current coding streak
----@param opts table|nil Component-specific options
+---@param opts { icon: string, show_days: boolean }|nil Component-specific options
 ---@return string component
 function M.streak(opts)
   local config = vim.tbl_deep_extend('force', M.config.streak, opts or {})
@@ -199,7 +200,7 @@ function M.streak(opts)
   end
 
   -- Build component
-  local parts = {}
+  local parts = {} ---@type string[]
 
   if config.icon ~= '' then
     table.insert(parts, config.icon)
@@ -213,7 +214,7 @@ function M.streak(opts)
 end
 
 ---Session time component - Shows current session duration
----@param opts table|nil Component-specific options
+---@param opts { format: string, icon: string, show_duration: boolean }|nil Component-specific options
 ---@return string component
 function M.session_time(opts)
   local config = vim.tbl_deep_extend('force', M.config.session_time, opts or {})
@@ -229,10 +230,9 @@ function M.session_time(opts)
     return '' -- No active session
   end
 
-  local duration = os.time() - session_start
-
   -- Build component
-  local parts = {}
+  local parts = {} ---@type string[]
+  local duration = os.time() - session_start
 
   if config.icon ~= '' then
     table.insert(parts, config.icon)
@@ -246,25 +246,11 @@ function M.session_time(opts)
 end
 
 ---Convenience function to get all components at once
----@param opts table|nil Configuration for all components
----@return table components Table with level, achievements, streak, session_time functions
+---@param opts Triforce.Lualine.Config|nil Configuration for all components
+---@return Triforce.Lualine.Config components Table with level, achievements, streak, session_time functions
 function M.components(opts)
   M.setup(opts)
-
-  return {
-    level = function()
-      return M.level()
-    end,
-    achievements = function()
-      return M.achievements()
-    end,
-    streak = function()
-      return M.streak()
-    end,
-    session_time = function()
-      return M.session_time()
-    end,
-  }
+  return { level = M.level, achievements = M.achievements, streak = M.streak, session_time = M.session_time }
 end
 
 return M

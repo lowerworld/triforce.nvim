@@ -1,11 +1,12 @@
 ---Random stat generator for displaying varied coding facts
+---@class Triforce.RandomStats
 local M = {}
 
 ---Generate a random stat fact based on current stats
 ---@param stats Stats
 ---@return string fact
 function M.get_random_fact(stats)
-  local facts = {}
+  local facts = {} ---@type string[]
 
   -- Calculate derived metrics
   local total_hours = math.floor(stats.time_coding / 3600)
@@ -154,7 +155,7 @@ function M.get_random_fact(stats)
   end
 
   -- Default fallback
-  if #facts == 0 then
+  if vim.tbl_isempty(facts) then
     table.insert(facts, 'Start coding to see interesting stats')
   end
 
@@ -182,7 +183,6 @@ end
 
 ---Format language name for display
 ---@param filetype string
----@return string
 function M.format_language_name(filetype)
   local language_names = {
     lua = 'Lua',
