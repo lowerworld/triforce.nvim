@@ -10,6 +10,9 @@ M.level_config = {
   tier_3 = { min_level = 21, max_level = math.huge, xp_per_level = 1000 }, -- Levels 21+: 1000 XP each
 }
 
+---@type string|nil
+M.db_path = nil
+
 ---Stats tracking and persistence module
 ---@class Stats
 ---@field xp integer Total experience points
@@ -24,6 +27,7 @@ M.level_config = {
 ---@field daily_activity table<string, integer> Lines typed per day (YYYY-MM-DD format)
 ---@field current_streak integer Current consecutive day streak
 ---@field longest_streak integer Longest ever streak
+---@field db_path string
 M.default_stats = {
   xp = 0,
   level = 1,
@@ -37,11 +41,13 @@ M.default_stats = {
   daily_activity = {},
   current_streak = 0,
   longest_streak = 0,
+  db_path = vim.fs.joinpath(vim.fn.stdpath('data'), 'triforce_stats.json'),
 }
 
 ---Get the stats file path
+---@return string db_path
 local function get_stats_path()
-  return vim.fn.stdpath('data') .. '/triforce_stats.json'
+  return M.db_path or M.default_stats.db_path
 end
 
 ---Prepare stats for JSON encoding (handle empty tables)
